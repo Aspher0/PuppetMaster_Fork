@@ -3,7 +3,7 @@
     "Author": "DodingDaga, Aspher0",
     "Name": "Puppet Master Enhanced",
     "InternalName": "PuppetMaster_Enhanced",
-    "AssemblyVersion": "1.0.1.0",
+    "AssemblyVersion": "1.0.1.1",
     "Description": "Let people control your character through chat.",
     "ApplicableVersion": "any",
     "Tags": [
@@ -22,8 +22,8 @@
     "LoadPriority": 0,
     "Punchline": "Let others tell you what to do.",
     "AcceptsFeedback": true,
-    "DownloadLinkInstall": "https://github.com/Aspher0/PuppetMaster_Fork/releases/download/1.0.1.0/latest.zip",
-    "DownloadLinkTesting": "https://github.com/Aspher0/PuppetMaster_Fork/releases/download/1.0.1.0/latest.zip",
-    "DownloadLinkUpdate": "https://github.com/Aspher0/PuppetMaster_Fork/releases/download/1.0.1.0/latest.zip"
+    "DownloadLinkInstall": "https://github.com/Aspher0/PuppetMaster_Fork/releases/download/1.0.1.1/latest.zip",
+    "DownloadLinkTesting": "https://github.com/Aspher0/PuppetMaster_Fork/releases/download/1.0.1.1/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/Aspher0/PuppetMaster_Fork/releases/download/1.0.1.1/latest.zip"
   }
 ]
