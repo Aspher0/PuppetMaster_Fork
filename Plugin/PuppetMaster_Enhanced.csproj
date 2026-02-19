@@ -2,7 +2,7 @@
 <Project Sdk="Dalamud.NET.Sdk/14.0.2">
   <PropertyGroup>
     <Authors>DondingDaga, Aspher0</Authors>
-    <Version>1.0.1.0</Version>
+    <Version>1.0.1.1</Version>
     <Description>Let people control your character through chat. Enhanced version with Whitelist/Blacklist.</Description>
     <PackageProjectUrl>https://github.com/Aspher0/PuppetMaster_Fork</PackageProjectUrl>
     <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NoireLib" Version="1.4.0" />
+    <PackageReference Include="NoireLib" Version="1.4.0.1" />
   </ItemGroup>
 
   <ItemGroup>

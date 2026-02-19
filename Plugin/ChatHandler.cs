@@ -5,7 +5,6 @@ using NoireLib;
 using NoireLib.Helpers;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace PuppetMaster_Enhanced;
@@ -37,7 +36,7 @@ public class ChatHandler
 
         bool playerNameMatch = whitelistedPlayer.StrictPlayerName
             ? string.Equals(clearFromPlayer, whitelistedPlayer.PlayerName.Trim(), StringComparison.OrdinalIgnoreCase)
-            : CommonHelper.RegExpMatch(clearFromPlayer, whitelistedPlayer.PlayerName);
+            : CommonHelper.RegExpMatch(clearFromPlayer, whitelistedPlayer.PlayerName, false);
 
         bool playerWorldMatch = whitelistedPlayer.PlayerWorld.Trim() == "*" || string.Equals(clearFromWorld, whitelistedPlayer.PlayerWorld.Trim(), StringComparison.OrdinalIgnoreCase);
 
@@ -71,7 +70,7 @@ public class ChatHandler
 
         bool playerNameMatch = blacklistedPlayer.StrictPlayerName
             ? string.Equals(clearFromPlayer, blacklistedPlayer.PlayerName.Trim(), StringComparison.OrdinalIgnoreCase)
-            : CommonHelper.RegExpMatch(clearFromPlayer, blacklistedPlayer.PlayerName);
+            : CommonHelper.RegExpMatch(clearFromPlayer, blacklistedPlayer.PlayerName, false);
 
         bool playerWorldMatch = blacklistedPlayer.PlayerWorld.Trim() == "*" || string.Equals(clearFromWorld, blacklistedPlayer.PlayerWorld.Trim(), StringComparison.OrdinalIgnoreCase);
 
@@ -108,6 +107,13 @@ public class ChatHandler
         if (!IsChannelEnabled(type, (useAllDefaultSettings || useDefaultEnabledChannels) ? Configuration.Instance.DefaultEnabledChannels : foundWhitelistedPlayer.EnabledChannels))
             return;
 
+        string triggerPhrase = (useAllDefaultSettings || useDefaultTrigger)
+            ? Configuration.Instance.DefaultTriggerPhrase
+            : foundWhitelistedPlayer.TriggerPhrase;
+
+        if (string.IsNullOrWhiteSpace(triggerPhrase))
+            return;
+
         bool flag1 = (!useAllDefaultSettings && !useDefaultTrigger) ? foundWhitelistedPlayer.UseRegex && foundWhitelistedPlayer.CustomRx != null : Configuration.Instance.DefaultUseRegex && Service.CustomRx != null;
         MatchCollection matchCollection = flag1 ? ((!useAllDefaultSettings && !useDefaultTrigger) ? foundWhitelistedPlayer.CustomRx.Matches(message) : Service.CustomRx.Matches(message)) : ((!useAllDefaultSettings && !useDefaultTrigger) ? foundWhitelistedPlayer.Rx.Matches(message) : Service.Rx.Matches(message));
 
@@ -129,10 +135,8 @@ public class ChatHandler
 
         Service.ParsedTextCommand parsedTextCommand = Service.FormatCommand(command);
 
-        if (string.IsNullOrEmpty(parsedTextCommand.Main))
-        {
+        if (parsedTextCommand.Main.IsNullOrWhitespace() || !parsedTextCommand.Main.StartsWith("/"))
             return;
-        }
 
         var foundEmote = EmoteHelper.GetEmoteByCommand(parsedTextCommand.Main);
         bool flag2 = foundEmote != null;
@@ -155,9 +159,7 @@ public class ChatHandler
             return;
         }
 
-        DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(0, 1);
-        interpolatedStringHandler.AppendFormatted(parsedTextCommand);
-        ChatHelper.SendMessage(interpolatedStringHandler.ToStringAndClear());
+        ChatHelper.SendMessage(parsedTextCommand.ToString());
     }
 
     public static void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)

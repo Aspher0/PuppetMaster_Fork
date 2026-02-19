@@ -7,12 +7,12 @@ namespace PuppetMaster_Enhanced;
 internal class CommonHelper
 {
     /// <summary>
-    /// Returns true if the text matches the given regular expression (case-insensitive). If the regexp is null/empty/whitespace, always returns true.
+    /// Returns true if the text matches the given regular expression (case-insensitive). If the regexp is null/empty/whitespace, will return the value of nullRegexReturnsTrue (default: true).
     /// </summary>
-    public static bool RegExpMatch(string text, string regexp)
+    public static bool RegExpMatch(string text, string regexp, bool nullRegexReturnsTrue = true)
     {
         if (string.IsNullOrWhiteSpace(regexp))
-            return true;
+            return nullRegexReturnsTrue;
 
         try
         {
