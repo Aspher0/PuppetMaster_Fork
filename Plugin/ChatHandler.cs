@@ -1,5 +1,6 @@
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Utility;
 using NoireLib;
 using NoireLib.Helpers;
 using System;
@@ -11,46 +12,39 @@ namespace PuppetMaster_Enhanced;
 
 public class ChatHandler
 {
-    public static bool WhitelistPass(string ClearFromPlayer, string ClearFromWorld, out WhitelistedPlayer? foundWhitelistedPlayer)
+    public static bool WhitelistPass(string clearFromPlayer, string clearFromWorld, out WhitelistedPlayer? foundWhitelistedPlayer)
     {
         foundWhitelistedPlayer = null;
 
         if (Configuration.Instance.EnableWhitelist && Configuration.Instance.WhitelistedPlayers.Count == 0)
             return false;
 
-        foreach (var WhitelistedPlayer in Configuration.Instance.WhitelistedPlayers)
+        foreach (var whitelistedPlayer in Configuration.Instance.WhitelistedPlayers)
         {
-            if (IsPlayerWhitelisted(ClearFromPlayer, ClearFromWorld, WhitelistedPlayer, out foundWhitelistedPlayer))
+            if (IsPlayerWhitelisted(clearFromPlayer, clearFromWorld, whitelistedPlayer, out foundWhitelistedPlayer))
                 return true;
         }
 
-        if (!Configuration.Instance.EnableWhitelist)
-            return true;
-
-        return false;
+        return !Configuration.Instance.EnableWhitelist;
     }
 
     private static bool IsPlayerWhitelisted(string clearFromPlayer, string clearFromWorld, WhitelistedPlayer whitelistedPlayer, out WhitelistedPlayer? foundWhitelistedPlayer)
     {
         foundWhitelistedPlayer = null;
 
-        string clearFromWhitelistedPlayer = whitelistedPlayer.PlayerName.Trim().ToLower();
-        string clearFromWhitelistedPlayerWorld = whitelistedPlayer.PlayerWorld.Trim().ToLower();
+        if (!IsValidPlayerEntry(clearFromPlayer, clearFromWorld, whitelistedPlayer.PlayerName, whitelistedPlayer.PlayerWorld, whitelistedPlayer.Enabled))
+            return false;
 
-        if (
-            clearFromPlayer != string.Empty && clearFromWhitelistedPlayer != string.Empty &&
-            clearFromWorld != string.Empty && clearFromWhitelistedPlayerWorld != string.Empty &&
-            whitelistedPlayer.Enabled && whitelistedPlayer.PlayerName != string.Empty && whitelistedPlayer.PlayerWorld != string.Empty
-           )
+        bool playerNameMatch = whitelistedPlayer.StrictPlayerName
+            ? string.Equals(clearFromPlayer, whitelistedPlayer.PlayerName.Trim(), StringComparison.OrdinalIgnoreCase)
+            : CommonHelper.RegExpMatch(clearFromPlayer, whitelistedPlayer.PlayerName);
+
+        bool playerWorldMatch = whitelistedPlayer.PlayerWorld.Trim() == "*" || string.Equals(clearFromWorld, whitelistedPlayer.PlayerWorld.Trim(), StringComparison.OrdinalIgnoreCase);
+
+        if (playerNameMatch && playerWorldMatch)
         {
-            bool playerNameMatch = whitelistedPlayer.StrictPlayerName ? clearFromPlayer == clearFromWhitelistedPlayer : CommonHelper.RegExpMatch(clearFromPlayer, whitelistedPlayer.PlayerName);
-            bool playerWorldMatch = (clearFromWhitelistedPlayerWorld == "*") || (clearFromWorld == clearFromWhitelistedPlayerWorld);
-
-            if (playerNameMatch && playerWorldMatch)
-            {
-                foundWhitelistedPlayer = whitelistedPlayer;
-                return true;
-            }
+            foundWhitelistedPlayer = whitelistedPlayer;
+            return true;
         }
 
         return false;
@@ -72,23 +66,16 @@ public class ChatHandler
 
     private static bool IsPlayerBlacklisted(string clearFromPlayer, string clearFromWorld, BlacklistedPlayer blacklistedPlayer)
     {
-        string clearFromBlacklistedPlayer = blacklistedPlayer.PlayerName.Trim().ToLower();
-        string clearFromBlacklistedPlayerWorld = blacklistedPlayer.PlayerWorld.Trim().ToLower();
+        if (!IsValidPlayerEntry(clearFromPlayer, clearFromWorld, blacklistedPlayer.PlayerName, blacklistedPlayer.PlayerWorld, blacklistedPlayer.Enabled))
+            return false;
 
-        if (
-            clearFromPlayer != string.Empty && clearFromBlacklistedPlayer != string.Empty &&
-            clearFromWorld != string.Empty && clearFromBlacklistedPlayerWorld != string.Empty &&
-            blacklistedPlayer.Enabled && blacklistedPlayer.PlayerName != string.Empty && blacklistedPlayer.PlayerWorld != string.Empty
-           )
-        {
-            bool playerNameMatch = blacklistedPlayer.StrictPlayerName ? clearFromPlayer == clearFromBlacklistedPlayer : CommonHelper.RegExpMatch(clearFromPlayer, blacklistedPlayer.PlayerName);
-            bool playerWorldMatch = (clearFromBlacklistedPlayerWorld == "*") || (clearFromWorld == clearFromBlacklistedPlayerWorld);
+        bool playerNameMatch = blacklistedPlayer.StrictPlayerName
+            ? string.Equals(clearFromPlayer, blacklistedPlayer.PlayerName.Trim(), StringComparison.OrdinalIgnoreCase)
+            : CommonHelper.RegExpMatch(clearFromPlayer, blacklistedPlayer.PlayerName);
 
-            if (playerNameMatch && playerWorldMatch)
-                return true;
-        }
+        bool playerWorldMatch = blacklistedPlayer.PlayerWorld.Trim() == "*" || string.Equals(clearFromWorld, blacklistedPlayer.PlayerWorld.Trim(), StringComparison.OrdinalIgnoreCase);
 
-        return false;
+        return playerNameMatch && playerWorldMatch;
     }
 
     public static bool IsChannelEnabled(XivChatType type, List<ChannelSetting> Channels)
@@ -96,9 +83,7 @@ public class ChatHandler
         foreach (var enabledChannel in Channels)
         {
             if (enabledChannel.ChatType == type && enabledChannel.Enabled)
-            {
                 return true;
-            }
         }
 
         return false;
@@ -109,7 +94,10 @@ public class ChatHandler
         string ClearFromPlayer = sender.Trim().ToLower();
         string ClearFromWorld = sender_world.Trim().ToLower();
 
-        if (ClearFromPlayer == String.Empty || !Configuration.Instance.EnablePlugin || !BlacklistPass(ClearFromPlayer, ClearFromWorld) || !WhitelistPass(ClearFromPlayer, ClearFromWorld, out WhitelistedPlayer? foundWhitelistedPlayer))
+        if (ClearFromPlayer.IsNullOrWhitespace() ||
+            !Configuration.Instance.EnablePlugin ||
+            !BlacklistPass(ClearFromPlayer, ClearFromWorld) ||
+            !WhitelistPass(ClearFromPlayer, ClearFromWorld, out WhitelistedPlayer? foundWhitelistedPlayer))
             return;
 
         bool useAllDefaultSettings = (foundWhitelistedPlayer == null) || foundWhitelistedPlayer.UseAllDefaultSettings;
@@ -178,5 +166,14 @@ public class ChatHandler
 
         if (senderResolved != null)
             DoCommand(type, message.ToString(), senderResolved.PlayerName, senderResolved.Homeworld);
+    }
+
+    private static bool IsValidPlayerEntry(string player, string world, string entryName, string entryWorld, bool enabled)
+    {
+        return !string.IsNullOrWhiteSpace(player)
+            && !string.IsNullOrWhiteSpace(entryName)
+            && !string.IsNullOrWhiteSpace(world)
+            && !string.IsNullOrWhiteSpace(entryWorld)
+            && enabled;
     }
 }

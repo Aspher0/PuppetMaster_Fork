@@ -1,21 +1,20 @@
+using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
-using Dalamud.Bindings.ImGui;
+using NoireLib;
+using NoireLib.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Reflection;
-using NoireLib;
-using Dalamud.Game.ClientState.Objects.SubKinds;
-using NoireLib.Models;
 
 namespace PuppetMaster_Enhanced;
 
 public class ConfigWindow : Window, IDisposable
 {
-    public const string Name = "Puppet Master Settings - A.S. Fork";
+    public const string Name = "Puppet Master Enhanced";
     private static ImGuiWindowFlags defaultFlags = ImGuiWindowFlags.NoCollapse;
     private static Service.ParsedTextCommand textCommand = new Service.ParsedTextCommand();
 
@@ -28,7 +27,7 @@ public class ConfigWindow : Window, IDisposable
     private int currentDraggedBlacklistIndex = -1;
     private int currentDraggedWhitelistIndex = -1;
 
-    public ConfigWindow() : base("Puppet Master Settings - A.S. Fork", defaultFlags, false) { }
+    public ConfigWindow() : base("Puppet Master Enhanced###PuppetMasterEnhanced", defaultFlags, false) { }
 
     public void Dispose() { }
 
@@ -82,27 +81,21 @@ public class ConfigWindow : Window, IDisposable
         bool enablePlugin = Configuration.Instance.EnablePlugin;
 
         if (ImGui.Checkbox("Enable Plugin", ref enablePlugin))
-        {
             Configuration.Instance.EnablePlugin = enablePlugin;
-        }
 
         ImGui.SameLine();
 
         bool enableWhitelist = Configuration.Instance.EnableWhitelist;
 
         if (ImGui.Checkbox("Enable Whitelist", ref enableWhitelist))
-        {
             Configuration.Instance.EnableWhitelist = enableWhitelist;
-        }
 
         ImGui.SameLine();
 
         bool enableBlacklist = Configuration.Instance.EnableBlacklist;
 
         if (ImGui.Checkbox("Enable Blacklist", ref enableBlacklist))
-        {
             Configuration.Instance.EnableBlacklist = enableBlacklist;
-        }
 
         ImGui.EndChild();
     }
@@ -123,13 +116,9 @@ public class ConfigWindow : Window, IDisposable
         if (ImGui.InputText(Configuration.Instance.DefaultUseRegex ? "Default pattern" : "Default trigger", ref str, 500))
         {
             if (!Configuration.Instance.DefaultUseRegex)
-            {
                 Configuration.Instance.DefaultTriggerPhrase = str.Trim();
-            }
             else
-            {
                 Configuration.Instance.DefaultCustomPhrase = str.Trim();
-            }
 
             Service.InitializeRegex(true);
         }
@@ -648,8 +637,7 @@ public class ConfigWindow : Window, IDisposable
 
             if (ImGui.Button($"Add {playerModel.FullName}"))
             {
-                WhitelistedPlayer NewWhitelistedPlayer = new(playerModel.PlayerName);
-                NewWhitelistedPlayer.PlayerWorld = playerModel.Homeworld;
+                WhitelistedPlayer NewWhitelistedPlayer = new(playerModel.PlayerName, playerModel.Homeworld);
                 Configuration.Instance.WhitelistedPlayers.Add(NewWhitelistedPlayer);
                 Configuration.Instance.Save();
 
@@ -829,8 +817,7 @@ public class ConfigWindow : Window, IDisposable
 
             if (ImGui.Button($"Add {playerModel.FullName}"))
             {
-                BlacklistedPlayer NewBlacklistedPlayer = new(playerModel.PlayerName);
-                NewBlacklistedPlayer.PlayerWorld = playerModel.Homeworld;
+                BlacklistedPlayer NewBlacklistedPlayer = new(playerModel.PlayerName, playerModel.Homeworld);
                 Configuration.Instance.BlacklistedPlayers.Add(NewBlacklistedPlayer);
                 Configuration.Instance.Save();
 
@@ -868,24 +855,6 @@ public class ConfigWindow : Window, IDisposable
         ImGui.TextColored(ImGuiColors.DalamudOrange, "        Example:");
         ImGui.SameLine();
         ImGui.Text("please do (ac \"Vercure\" [t])");
-
-        ImGui.EndChild();
-
-        ImGui.BeginChild("Help_PluginInfos", new Vector2(-1f, 55f), true);
-
-        Version version = Assembly.GetExecutingAssembly().GetName().Version;
-        string versionString = $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
-
-        ImGui.TextColored(ImGuiColors.DalamudViolet, "Plugin informations :");
-        ImGui.Text("App version : " + versionString);
-
-        ImGui.EndChild();
-
-        ImGui.BeginChild("Help_Development", new Vector2(-1f, 75f), true);
-
-        ImGui.TextColored(ImGuiColors.DalamudViolet, "Development :");
-        ImGui.Text("Developed by DodingDaga");
-        ImGui.Text("Forked by A.S.");
 
         ImGui.EndChild();
     }

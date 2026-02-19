@@ -2,7 +2,6 @@ using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
 using NoireLib;
 using System;
 using System.Collections.Generic;
@@ -13,7 +12,7 @@ public sealed class Plugin : IDalamudPlugin
 {
     [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
 
-    public string Name => "PuppetMaster - A.S Fork";
+    public string Name => "PuppetMaster Enhanced";
 
     private readonly List<Tuple<string, string>> commandNames = new()
     {
@@ -22,9 +21,8 @@ public sealed class Plugin : IDalamudPlugin
         new Tuple < string, string >("/puppet", "Alias for PuppetMaster settings")
     };
 
-    public WindowSystem WindowSystem = new("PuppetMaster - A.S Fork");
+    public WindowSystem WindowSystem = new("PuppetMaster Enhanced");
     public ConfigWindow ConfigWindow { get; init; } = new();
-
 
     public Plugin()
     {
@@ -42,18 +40,24 @@ public sealed class Plugin : IDalamudPlugin
             });
         }
 
-        NoireService.ChatGui.ChatMessage += new IChatGui.OnMessageDelegate(ChatHandler.OnChatMessage);
+        NoireService.ChatGui.ChatMessage += ChatHandler.OnChatMessage;
 
-        PluginInterface.UiBuilder.Draw += DrawUI;
+        PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
+        PluginInterface.UiBuilder.OpenMainUi += DrawConfigUI;
         PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
     }
 
+    private void OnCommand(string command, string args) => DrawConfigUI();
+
+    public void DrawConfigUI() => ConfigWindow.IsOpen = !ConfigWindow.IsOpen;
+
     public void Dispose()
     {
-        PluginInterface.UiBuilder.Draw -= DrawUI;
+        PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
+        PluginInterface.UiBuilder.OpenMainUi -= DrawConfigUI;
         PluginInterface.UiBuilder.OpenConfigUi -= DrawConfigUI;
 
-        NoireService.ChatGui.ChatMessage -= new IChatGui.OnMessageDelegate(ChatHandler.OnChatMessage);
+        NoireService.ChatGui.ChatMessage -= ChatHandler.OnChatMessage;
 
         foreach (var CommandName in commandNames)
             NoireService.CommandManager.RemoveHandler(CommandName.Item1);
@@ -62,20 +66,5 @@ public sealed class Plugin : IDalamudPlugin
         ConfigWindow.Dispose();
 
         NoireLibMain.Dispose();
-    }
-
-    private void OnCommand(string command, string args)
-    {
-        DrawConfigUI();
-    }
-
-    private void DrawUI()
-    {
-        WindowSystem.Draw();
-    }
-
-    public void DrawConfigUI()
-    {
-        ConfigWindow.IsOpen = !ConfigWindow.IsOpen;
     }
 }

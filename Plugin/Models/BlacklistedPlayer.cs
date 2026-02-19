@@ -1,5 +1,5 @@
-using System;
 using NoireLib.Helpers;
+using System;
 
 namespace PuppetMaster_Enhanced;
 
@@ -12,9 +12,10 @@ public class BlacklistedPlayer
     public bool Enabled = true;
     public bool StrictPlayerName = true;
 
-    public BlacklistedPlayer(string name = "")
+    public BlacklistedPlayer(string name = "", string homeworld = "")
     {
         PlayerName = name;
+        PlayerWorld = homeworld;
         Id = RandomGenerator.GenerateGuidString();
     }
 }

@@ -11,10 +11,45 @@ public class Service
     public static Regex? Rx;
     public static Regex? CustomRx;
 
-    private static string GetDefaultRegex()
+    /// <summary>
+    /// Returns the default list of channel settings for new whitelist/blacklist entries.
+    /// </summary>
+    public static List<ChannelSetting> GetDefaultChannelSettings()
     {
-        return $"(?i)\\b(?:{Configuration.Instance.DefaultTriggerPhrase})\\s+(?:\\((.*?)\\)|(\\w+))";
+        return new List<ChannelSetting>
+        {
+            new ChannelSetting { ChatType = (XivChatType)37, Name = "CWLS1" },
+            new ChannelSetting { ChatType = (XivChatType)101, Name = "CWLS2" },
+            new ChannelSetting { ChatType = (XivChatType)102, Name = "CWLS3" },
+            new ChannelSetting { ChatType = (XivChatType)103, Name = "CWLS4" },
+            new ChannelSetting { ChatType = (XivChatType)104, Name = "CWLS5" },
+            new ChannelSetting { ChatType = (XivChatType)105, Name = "CWLS6" },
+            new ChannelSetting { ChatType = (XivChatType)106, Name = "CWLS7" },
+            new ChannelSetting { ChatType = (XivChatType)107, Name = "CWLS8" },
+            new ChannelSetting { ChatType = (XivChatType)16, Name = "LS1" },
+            new ChannelSetting { ChatType = (XivChatType)17, Name = "LS2" },
+            new ChannelSetting { ChatType = (XivChatType)18, Name = "LS3" },
+            new ChannelSetting { ChatType = (XivChatType)19, Name = "LS4" },
+            new ChannelSetting { ChatType = (XivChatType)20, Name = "LS5" },
+            new ChannelSetting { ChatType = (XivChatType)21, Name = "LS6" },
+            new ChannelSetting { ChatType = (XivChatType)22, Name = "LS7" },
+            new ChannelSetting { ChatType = (XivChatType)23, Name = "LS8" },
+            new ChannelSetting { ChatType = (XivChatType)13, Name = "Tell" },
+            new ChannelSetting { ChatType = (XivChatType)10, Name = "Say" },
+            new ChannelSetting { ChatType = (XivChatType)14, Name = "Party" },
+            new ChannelSetting { ChatType = (XivChatType)30, Name = "Yell" },
+            new ChannelSetting { ChatType = (XivChatType)11, Name = "Shout" },
+            new ChannelSetting { ChatType = (XivChatType)24, Name = "Free Company" },
+            new ChannelSetting { ChatType = (XivChatType)15, Name = "Alliance" }
+        };
     }
+
+    public static string BuildRegexPattern(string triggerPhrase)
+    {
+        return $"(?i)\\b(?:{triggerPhrase})\\s+(?:\\((.*?)\\)|(\\w+))";
+    }
+
+    private static string GetDefaultRegex() => BuildRegexPattern(Configuration.Instance.DefaultTriggerPhrase);
 
     public static string GetDefaultReplaceMatch() => "/$1$2";
 
@@ -55,6 +90,38 @@ public class Service
                 NoireLogger.LogError(ex, "[PuppetMaster] [Error] Could not initialize default Regex");
             }
         }
+    }
+
+    /// <summary>
+    /// Returns a test input command for a given test input and regex settings.
+    /// </summary>
+    public static ParsedTextCommand GetTestInputCommand(
+        string testInput,
+        bool useRegex,
+        Regex? customRx,
+        Regex? rx,
+        string replaceMatch,
+        string defaultReplaceMatch)
+    {
+        ParsedTextCommand testInputCommand = new ParsedTextCommand();
+        bool flag = useRegex && customRx != null;
+        MatchCollection? matchCollection = flag ? customRx?.Matches(testInput) : rx?.Matches(testInput);
+        if (matchCollection != null && matchCollection.Count != 0)
+        {
+            testInputCommand.Args = matchCollection[0].ToString();
+            try
+            {
+                testInputCommand.Main = flag
+                    ? customRx!.Replace(matchCollection[0].Value, replaceMatch)
+                    : rx!.Replace(matchCollection[0].Value, defaultReplaceMatch);
+            }
+            catch (Exception ex)
+            {
+                NoireLogger.LogError(ex, "[PuppetMaster] [Error] Error using Regex");
+            }
+        }
+        testInputCommand.Main = FormatCommand(testInputCommand.Main).ToString();
+        return testInputCommand;
     }
 
     public static ParsedTextCommand GetTestInputCommand()
@@ -129,128 +196,11 @@ public class Service
     {
         if (Configuration.Instance.DefaultEnabledChannels.Count != 23)
         {
-            Configuration.Instance.DefaultEnabledChannels = new List<ChannelSetting>()
-            {
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 37,
-                    Name = "CWLS1"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 101,
-                    Name = "CWLS2"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 102,
-                    Name = "CWLS3"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 103,
-                    Name = "CWLS4"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 104,
-                    Name = "CWLS5"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 105,
-                    Name = "CWLS6"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 106,
-                    Name = "CWLS7"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 107,
-                    Name = "CWLS8"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 16,
-                    Name = "LS1"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 17,
-                    Name = "LS2"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 18,
-                    Name = "LS3"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 19,
-                    Name = "LS4"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 20,
-                    Name = "LS5"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 21,
-                    Name = "LS6"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 22,
-                    Name = "LS7"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 23,
-                    Name = "LS8"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 13,
-                    Name = "Tell"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 10,
-                    Name = "Say"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 14,
-                    Name = "Party"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 30,
-                    Name = "Yell"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 11,
-                    Name = "Shout"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 24,
-                    Name = "Free Company"
-                },
-                new ChannelSetting()
-                {
-                    ChatType = (XivChatType) 15,
-                    Name = "Alliance"
-                }
-            };
+            Configuration.Instance.DefaultEnabledChannels = GetDefaultChannelSettings();
+            Configuration.Instance.Save();
         }
 
         InitializeRegex();
-        Configuration.Instance.Save();
     }
 
     public struct ParsedTextCommand

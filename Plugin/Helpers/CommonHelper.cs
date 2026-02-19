@@ -6,29 +6,22 @@ namespace PuppetMaster_Enhanced;
 
 internal class CommonHelper
 {
+    /// <summary>
+    /// Returns true if the text matches the given regular expression (case-insensitive). If the regexp is null/empty/whitespace, always returns true.
+    /// </summary>
     public static bool RegExpMatch(string text, string regexp)
     {
-        bool flag = false;
+        if (string.IsNullOrWhiteSpace(regexp))
+            return true;
 
-        if (regexp.Trim() == "")
+        try
         {
-            flag = true;
+            return Regex.IsMatch(text, regexp, RegexOptions.IgnoreCase);
         }
-        else
+        catch (Exception ex)
         {
-            try
-            {
-                if (Regex.Match(text, regexp, RegexOptions.IgnoreCase).Success)
-                {
-                    flag = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                NoireLogger.LogError(ex, $"[PUPPETMASTER] Wrong RegEXP: {regexp}");
-            }
+            NoireLogger.LogError(ex, $"[PUPPETMASTER] Wrong RegEXP: {regexp}");
+            return false;
         }
-
-        return flag;
     }
 }
