@@ -1,5 +1,5 @@
+using Dalamud.Game.Chat;
 using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Utility;
 using NoireLib;
 using NoireLib.Helpers;
@@ -162,12 +162,12 @@ public class ChatHandler
         ChatHelper.SendMessage(parsedTextCommand.ToString());
     }
 
-    public static void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    public static void OnChatMessage(IChatMessage message)
     {
-        var senderResolved = SeStringHelper.ResolveSender(sender);
+        var senderResolved = SeStringHelper.ResolveSender(message.Sender);
 
         if (senderResolved != null)
-            DoCommand(type, message.ToString(), senderResolved.PlayerName, senderResolved.Homeworld);
+            DoCommand(message.LogKind, message.Message.ToString(), senderResolved.PlayerName, senderResolved.HomeWorld);
     }
 
     private static bool IsValidPlayerEntry(string player, string world, string entryName, string entryWorld, bool enabled)

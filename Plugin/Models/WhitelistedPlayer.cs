@@ -1,8 +1,8 @@
+using Newtonsoft.Json;
 using NoireLib;
 using NoireLib.Helpers;
 using System;
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace PuppetMaster_Enhanced;

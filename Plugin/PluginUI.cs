@@ -637,7 +637,7 @@ public class ConfigWindow : Window, IDisposable
 
             if (ImGui.Button($"Add {playerModel.FullName}"))
             {
-                WhitelistedPlayer NewWhitelistedPlayer = new(playerModel.PlayerName, playerModel.Homeworld);
+                WhitelistedPlayer NewWhitelistedPlayer = new(playerModel.PlayerName, playerModel.HomeWorld);
                 Configuration.Instance.WhitelistedPlayers.Add(NewWhitelistedPlayer);
                 Configuration.Instance.Save();
 
@@ -817,7 +817,7 @@ public class ConfigWindow : Window, IDisposable
 
             if (ImGui.Button($"Add {playerModel.FullName}"))
             {
-                BlacklistedPlayer NewBlacklistedPlayer = new(playerModel.PlayerName, playerModel.Homeworld);
+                BlacklistedPlayer NewBlacklistedPlayer = new(playerModel.PlayerName, playerModel.HomeWorld);
                 Configuration.Instance.BlacklistedPlayers.Add(NewBlacklistedPlayer);
                 Configuration.Instance.Save();
 
